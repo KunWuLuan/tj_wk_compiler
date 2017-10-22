@@ -12,7 +12,7 @@ int Parser()
 {
 	//读取递推式，限定VT和VN
 	fstream infile;
-	infile.open("data.txt", ios::in);
+	infile.open("data2.txt", ios::in);
 	if (!infile.is_open())
 		return -1;
 	infile >> N;
@@ -225,7 +225,7 @@ string &m_erase(string &a)
 		{
 			if (a[j] == a[i])
 			{
-				a.erase(j);
+				a.erase(j,j);
 				j--;
 			}
 		}
