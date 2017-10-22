@@ -1,0 +1,6 @@
+5
+E=Te
+e=+Te|@
+T=Ft
+t=*Ft|@
+F=(E)|i
