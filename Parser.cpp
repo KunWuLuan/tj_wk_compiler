@@ -1,5 +1,8 @@
 #include"linklist.h"
 using namespace std;
+string keyname[] = {
+	"INT","VOID","IDENTIFIER","RETURN","WHILE","ELSE","NUM","IF"
+};
 set<char>VT, VN;
 string *SentencePattern;
 int N;//ÍÆµ¼Óï¾äµÄÊıÁ¿
@@ -7,12 +10,15 @@ int getFOLLOW(const char &A, map<char, string>&F, map<char, string>&FIRST);
 string getFollow(const char &A, map<char, string>&F, map<char, string>&FIRST);
 int getFirst(const string &A, map<char, string>&F);
 string getF(const char &A, map<char, string>&F);
+bool isRELOP(string k);
 string & m_erase(string &a);
-int Parser()
+STATUS analyse(list<c_linklist> Lexical,map<string,string>Forecast);
+int findtype(string k);
+int Parser(list<c_linklist> Lexical)
 {
 	//¶ÁÈ¡µİÍÆÊ½£¬ÏŞ¶¨VTºÍVN
 	fstream infile;
-	infile.open("data2.txt", ios::in);
+	infile.open("data4.txt", ios::in);
 	if (!infile.is_open())
 		return -1;
 	infile >> N;
@@ -117,9 +123,10 @@ int Parser()
 	}
 
 	//¸ù¾İÔ¤²â·ÖÎö±íºÍ´Ê·¨·ÖÎö½á¹û½øĞĞÓï·¨·ÖÎö
-
+	analyse(Lexical, Forecast);
 	return 0;
 }
+
 int getFOLLOW(const char &A, map<char, string>&F, map<char, string>&FIRST)
 {
 	for (int i = 0; i < N; i++)
@@ -138,7 +145,7 @@ int getFOLLOW(const char &A, map<char, string>&F, map<char, string>&FIRST)
 				F[A] += b;
 				int pos;
 				if((pos = F[A].find('@'))!=string::npos)
-					F[A].erase(pos);
+					F[A].erase(pos,1);
 				if (b.find('@') != string::npos)
 				{
 					string c = getFollow(SentencePattern[i][0], F, FIRST);
@@ -155,6 +162,7 @@ int getFOLLOW(const char &A, map<char, string>&F, map<char, string>&FIRST)
 	}
 	return 1;
 }
+
 string getFollow(const char &A, map<char, string>&F, map<char, string>&FIRST)//´Ëº¯ÊıºÍgetFº¯ÊıÊÇÓÃÀ´²úÉúÒ»¸öµİ¹é¡£
 {
 	if (F[A] != "")
@@ -165,6 +173,7 @@ string getFollow(const char &A, map<char, string>&F, map<char, string>&FIRST)//´
 		return F[A];
 	}
 }
+
 int getFirst(const string &A, map<char, string>&F)
 {
 	int ite;
@@ -181,7 +190,7 @@ int getFirst(const string &A, map<char, string>&F)
 			if (A[ite] == '@')
 				F[ch] += '@';
 			else
-				F[ch] += k.erase(t);
+				F[ch] += k.erase(t, 1);
 			//F[ch].erase('@');
 			//num++;
 		}
@@ -199,6 +208,7 @@ int getFirst(const string &A, map<char, string>&F)
 	//	F[ch] += "@";
 	return 1;
 }
+
 string getF(const char &A, map<char, string>&F)
 {
 	string str;
@@ -217,6 +227,7 @@ string getF(const char &A, map<char, string>&F)
 		return F[A];
 	}
 }
+
 string &m_erase(string &a)
 {
 	for (int i = 0; i < a.length(); i++)
@@ -225,10 +236,111 @@ string &m_erase(string &a)
 		{
 			if (a[j] == a[i])
 			{
-				a.erase(j,j);
+				a.erase(j, 1);
 				j--;
 			}
 		}
 	}
 	return a;
+}
+
+STATUS analyse(list<c_linklist> Lexical, map<string, string>Forecast)
+{
+	list<c_linklist>::iterator ite;
+	stack<char>symbol;
+	symbol.push('#');
+	symbol.push('E');
+	int hang = 0;
+	for (ite = Lexical.begin(); ite != Lexical.end(); )
+	{
+		stringstream sstr;
+		string posxy;//¹¹½¨×ø±ê
+		TYPE k = (*ite).m_type;
+		int pos = findtype(k);//ÕÒµ½¸ÃÀàĞÍµÄ±àºÅ
+		char top = symbol.top();//È¡³öÕ»¶¥µÄ·ûºÅ
+		if (top == '|') {
+			symbol.pop();
+			continue;
+		}
+		if (pos == -1)//ÊÇ¸ö·ûºÅ
+		{
+			if (k[0] == top)
+			{
+				//ÊÇÒ»¸öÖÕ½á·û¶øÇÒÆ¥Åä³É¹¦
+				symbol.pop();
+				cout << (*ite).m_value;
+				ite++;
+				hang++;
+				cout << endl<<'\t';
+				//for (int j = 0; j < hang; j++)
+				//	cout << '\t';
+				continue;
+			}
+			if ('g' == top && isRELOP(k))
+			{
+				//ÊÇÒ»¸öÖÕ½á·û¶øÇÒÆ¥Åä³É¹¦
+				symbol.pop();
+				cout << (*ite).m_value;
+				ite++;
+				hang++;
+				cout << endl << '\t';
+				//for (int j = 0; j < hang; j++)
+				//	cout << '\t';
+				continue;
+			}
+			if(isRELOP(k))
+				sstr << top << 'g';
+			else
+				sstr << top << k[0];
+			sstr >> posxy;
+		}
+		else//²»ÊÇ¸ö·ûºÅ£¬ÓÃ±àºÅ½øĞĞÆ¥Åä
+		{
+			sstr << top << pos;
+			sstr >> posxy;
+		}
+		if (pos == top - '0')
+		{
+			//ÊÇÒ»¸öÖÕ½á·û¶øÇÒÆ¥Åä³É¹¦
+			symbol.pop();
+			cout << (*ite).m_value;
+			ite++;
+			hang++;
+			cout << endl<<'\t';
+			continue;
+		}
+		cout << symbol.top() << '\t';
+
+		string pattern;
+		if (Forecast.count(posxy) == 0)//³öÏÖÁËÔ¤²â·ÖÎö±íÖ®ÍâµÄÇé¿ö£¬±¨´í
+			return -1;
+		pattern = Forecast[posxy];//²éµ½²úÉúÊ½
+		symbol.pop();
+		if (pattern == "@" || pattern == "@|") {
+			cout << "@" << endl << '\t';
+			continue;
+		}
+		for (int i = pattern.length() - 1; i >= 0; i--)
+		{
+			symbol.push(pattern[i]);//ÄæĞò½«²úÉúÊ½Ñ¹Õ»
+		}
+	}
+	return 1;
+}
+
+int findtype(string k)
+{
+	for (int i = 0; i < 8; i++)
+	{
+		if (keyname[i] == k)
+			return i;
+	}
+	return -1;
+}
+
+bool isRELOP(string k)
+{
+	if (k == "<" || k == "<=" || k == ">" || k == ">=" || k == "==" || k == "!=")
+		return 1;
+	return 0;
 }

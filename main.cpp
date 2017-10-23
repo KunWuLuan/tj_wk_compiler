@@ -1,4 +1,3 @@
-
 #include"linklist.h"
 STATUS c_scanner(SOURSE &infile, list<c_linklist> &Lexical);//扫描器，每次扫描出一个保留字，标识符或数字
 STATUS findNumber(ifstream &infile, c_linklist &node);
@@ -37,18 +36,20 @@ int main()
 	STATUS ret;
 	while ((ret=c_scanner(infile, Lexical)) != 2&&ret!=-1)
 		;
+	c_linklist last("#", "#");
+	Lexical.push_back(last);
 	list<c_linklist>::iterator ite = Lexical.begin();
-	//while (ite != Lexical.end())
-	//{
-	//	cout << '<' << (*ite).m_type << ' ' << (*ite).m_value << '>' << endl;
-	//	ite++;
-	//}
+	while (ite != Lexical.end())
+	{
+		cout << '<' << (*ite).m_type << ' ' << (*ite).m_value << '>' << endl;
+		ite++;
+	}
 	if (ret == -1)
 	{
 		cout << "词法分析错误" << endl;
 		exit(-1);
 	}
-	Parser();
+	Parser(Lexical);
 	return 0;
 }
 STATUS c_scanner(SOURSE &infile,list<c_linklist> &Lexical)
@@ -155,7 +156,7 @@ STATUS c_scanner(SOURSE &infile,list<c_linklist> &Lexical)
 		//字符型常量
 		if (infile.peek() != EOF) {
 			infile >> ch;
-			if (ch == '\\')
+			if (ch == '/')
 				//单行注释，找\n
 			{
 				while (ch != '\n')
@@ -403,12 +404,12 @@ STATUS findNumber(ifstream &infile,c_linklist &node)
 		if (infile.peek() != EOF)infile.seekg(-1, ios::cur);
 	}
 	if (node.m_value.find('.') != -1)
-		node.m_type = "FLOAT";
+		node.m_type = "NUM";
 	else
-		node.m_type = "INT";
+		node.m_type = "NUM";
 	return 1;
 }
 bool isOperator(const TYPE &a)
 {
-	return a != "IDENTIFIER"&&a != "INT"&&a != "FLOAT"&&a != "=";
+	return !(a != "IDENTIFIER"&&a != "INT"&&a != "FLOAT"&&a != "="&&a != "NUM");
 }

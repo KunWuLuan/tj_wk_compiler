@@ -1,6 +1,7 @@
 #pragma once
 #include<fstream>
 #include<sstream>
+#include<stack>
 #include<iostream>
 #include<string>
 #include<list>
@@ -12,10 +13,12 @@ using namespace std;
 #define VALUE string
 #define STATUS int
 #define SOURSE ifstream
-int Parser();
 struct c_linklist
 {
 	TYPE m_type;
 	VALUE m_value;
 	//c_linklist * next;
+	c_linklist();
+	c_linklist(string,string);
 };
+int Parser(list<c_linklist> Lexical);
