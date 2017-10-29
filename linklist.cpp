@@ -4,7 +4,7 @@ c_linklist::c_linklist()
 {
     m_type = m_value = "";
 }
-c_linklist::c_linklist(string a,string b)
+c_linklist::c_linklist(QString a,QString b)
 {
     m_type = a;
     m_value = b;
@@ -26,7 +26,7 @@ STATUS findNumber(QTextStream &infile,c_linklist &node)
         if (!infile.atEnd())
             infile.seek(infile.pos()-1);
     }
-    if (node.m_value.find('.') != -1)
+    if (node.m_value.indexOf('.') != -1)
         node.m_type = "NUM";
     else
         node.m_type = "NUM";

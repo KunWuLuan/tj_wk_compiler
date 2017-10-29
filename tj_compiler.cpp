@@ -7,7 +7,6 @@ tj_compiler::tj_compiler(QWidget *parent) :
     ui->setupUi(this);
     ui->parserfileInput=ui->fileInput=NULL;
 
-
     ui->fileDisplayBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->allBtn->setEnabled(false);
     ui->lexicalBtn->setEnabled(false);
@@ -111,19 +110,22 @@ void tj_compiler::handleFile(QTextStream &infile)
     int N;
     infile>>N;
 
-    VT = new set<char>();
-    VN = new set<char>();
+    VT = new set<QChar>();
+    VN = new set<QChar>();
     SentencePattern = new QString[N];
     SentencePatternData = new QStandardItemModel();
     for (int i = 0; i < N; i++)
     {
         infile >> SentencePattern[i];
         SentencePatternData->setItem(i,new QStandardItem(SentencePattern[i]));
-        VT->insert(SentencePattern[i].toStdString()[0]);
+        VT->insert(SentencePattern[i][0]);
         for (int j = 2; j < SentencePattern[i].length(); j++)
         {
-            VN->insert(SentencePattern[i].toStdString()[j]);
+            VN->insert(SentencePattern[i][j]);
         }
     }
     VN->erase('|');
+    set<QChar>::iterator ite;
+    for (ite = VT->begin(); ite != VT->end(); ite++)
+        VN->erase(*ite);
 }

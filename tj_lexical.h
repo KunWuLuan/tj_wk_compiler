@@ -11,7 +11,7 @@ struct c_linklist
 {
     TYPE m_type;
     VALUE m_value;
-    c_linklist(string,string);
+    c_linklist(QString,QString);
     c_linklist();
 };
 namespace Ui {

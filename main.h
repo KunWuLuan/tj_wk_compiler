@@ -3,15 +3,14 @@
 
 #include<fstream>
 #include<sstream>
-#include<stack>
 #include<string>
 #include<list>
 #include<set>
 #include<map>
 #include<algorithm>
 using namespace std;
-#define TYPE string
-#define VALUE string
+#define TYPE QString
+#define VALUE QString
 #define STATUS int
 #define SOURSE ifstream
 

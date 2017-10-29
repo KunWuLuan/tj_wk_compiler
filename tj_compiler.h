@@ -3,7 +3,6 @@
 #include<QFileDialog>
 #include<QMainWindow>
 #include "tj_parser.h"
-#include "main.h"
 namespace Ui {
 class tj_compiler;
 }
@@ -35,10 +34,10 @@ private:
     QStandardItemModel *lexicaldata;//存储分析出的词法数据
     QStandardItemModel *SentencePatternData;//存储分析出的词法数据
     list<c_linklist> *m_Lexical;//定义的词法分析器结果链表
-    set<char> *VT;//终结字符集
-    set<char> *VN;//非终结字符集
-    map<char,string> *first;
-    map<char,string> *follow;
+    set<QChar> *VT;//终结字符集
+    set<QChar> *VN;//非终结字符集
+    map<QChar,QString> *first;
+    map<QChar,QString> *follow;
 
     void handleFile(QTextStream &infile);
 signals:

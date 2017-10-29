@@ -73,10 +73,10 @@ void tj_lexical::on_oneStep_clicked()
     c_linklist node;
     do{
         c_scanner(*infile,*m_Lexical,node);
-    }while(node.m_type==""||node.m_type==" ");
+    }while(node.m_type==""||node.m_type=="\r");
     int row=m_Lexical->size()-1;
-    data->setItem(row,0,new QStandardItem(QString::fromStdString(node.m_type)));
-    data->setItem(row,1,new QStandardItem(QString::fromStdString(node.m_value)));
+    data->setItem(row,0,new QStandardItem(node.m_type));
+    data->setItem(row,1,new QStandardItem(node.m_value));
 }
 
 int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_linklist &onode)
@@ -90,19 +90,19 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
     else
         return 2;
     //过滤空格
-    while (ch == ' '||ch =='\n'||ch =='\t')
+    while (ch == ' '||ch =='\n'||ch =='\t'||ch =='\r')
         if (!infile.atEnd()){
             infile >> ch;
         }
         else
             return 2;
     node.m_value = ch;
-    if (ch >= 'a'&&ch <= 'z' || ch >= 'A'&&ch <= 'Z')
+    if ((ch >= 'a'&&ch <= 'z') || (ch >= 'A'&&ch <= 'Z'))
     {
         //标识符或者保留字
         if (!infile.atEnd()) {
             infile >> ch;
-            while (ch >= 'a'&&ch <= 'z' || ch >= 'A'&&ch <= 'Z' || ch <= '9'&&ch >= '0') {
+            while ((ch >= 'a'&&ch <= 'z') || (ch >= 'A'&&ch <= 'Z') || (ch <= '9'&&ch >= '0')) {
                 node.m_value += ch;
                 if (!infile.atEnd()){
                     infile >> ch;
@@ -120,7 +120,7 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
             //在保留字表中找到
         {
             node.m_type = (*ite);
-            transform(node.m_type.begin(), node.m_type.end(), node.m_type.begin(), ::toupper);
+            node.m_type=node.m_type.toUpper();
         }
         else
         {
@@ -138,7 +138,7 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
         if (!infile.atEnd()) {
             infile >> ch;
             node.m_value += ch;
-            string::iterator ite;
+            QString::iterator ite;
             while (!(ch == '\"'&&*(ite = node.m_value.end() - 1) != '\\'))
             {
                 ////考虑转义符
@@ -428,8 +428,8 @@ void tj_lexical::on_toEnd_clicked()
     int i=0;
     while (ite != m_Lexical->end())
     {
-        data->setItem(i,0,new QStandardItem(QString::fromStdString((*ite).m_type)));
-        data->setItem(i,1,new QStandardItem(QString::fromStdString((*ite).m_value)));
+        data->setItem(i,0,new QStandardItem((*ite).m_type));
+        data->setItem(i,1,new QStandardItem((*ite).m_value));
         ite++;
         i++;
     }
