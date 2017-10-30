@@ -2,6 +2,7 @@
 #include "ui_tj_lexical.h"
 #include <windows.h>
 #include "main.h"
+#include <QMessageBox>
 set<TYPE> conststr = { "and","and","eq","asm","auto",
                     "bitand","bitor", "bool","break",
                     "case","catch","char","class",
@@ -70,13 +71,22 @@ void tj_lexical::receivelist(list<c_linklist> *a)
 
 void tj_lexical::on_oneStep_clicked()
 {
-    c_linklist node;
-    do{
-        c_scanner(*infile,*m_Lexical,node);
-    }while(node.m_type==""||node.m_type=="\r");
-    int row=m_Lexical->size()-1;
-    data->setItem(row,0,new QStandardItem(node.m_type));
-    data->setItem(row,1,new QStandardItem(node.m_value));
+    if(!infile->atEnd()){
+        c_linklist node;
+        int s;
+        do{
+            s=c_scanner(*infile,*m_Lexical,node);
+            if(s==2)
+                break;
+        }while(node.m_type==""||node.m_type=="\r");
+        if(s!=2){
+            int row=m_Lexical->size()-1;
+            data->setItem(row,0,new QStandardItem(node.m_type));
+            data->setItem(row,1,new QStandardItem(node.m_value));
+        }
+    }
+    else
+        QMessageBox::warning(this,"Finished","已经做完分析了");
 }
 
 int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_linklist &onode)
@@ -149,7 +159,7 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
                 else
                     return -1;
             }
-            node.m_type = "CHAR*";
+            node.m_type = "CONSTSTRING";
         }
         else
             return -1;
@@ -172,7 +182,7 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
                 else
                     return -1;
             }
-            node.m_type = "CHAR";
+            node.m_type = "CONSTCHAR";
         }
         else
             return -1;
@@ -239,7 +249,7 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
                 break;
             case '+':
                 //+|+=|++
-                if (!m_Lexical.empty() && isOperator(m_Lexical.back().m_type)) {
+                if (!m_Lexical.empty()) {
                     if (!infile.atEnd())
                     {
                         infile >> ch;
@@ -253,13 +263,10 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
                     }
                     node.m_type = node.m_value;
                 }
-                else {
-                    findNumber(infile, node);
-                }
                 break;
             case '-':
                 //-|-=
-                if (!m_Lexical.empty() && isOperator(m_Lexical.back().m_type)) {
+                if (!m_Lexical.empty()) {
                     //是一个算符
                     if (!infile.atEnd()) {
                         infile >> ch;
@@ -271,11 +278,7 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
                             //将字符送回字符流
                             infile.seek(infile.pos()-1);
                     }
-                    else
-                        node.m_type = node.m_value;
-                }
-                else {
-                    findNumber(infile, node);
+                    node.m_type = node.m_value;
                 }
                 break;
             case '*':
@@ -422,8 +425,6 @@ void tj_lexical::on_toEnd_clicked()
     c_linklist onode;
     while ((ret=c_scanner(*infile, *m_Lexical,onode)) != 2&&ret!=-1)
         ;
-    c_linklist last("#", "#");
-    m_Lexical->push_back(last);
     list<c_linklist>::iterator ite = m_Lexical->begin();
     int i=0;
     while (ite != m_Lexical->end())

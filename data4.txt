@@ -1,15 +1,20 @@
-27
-E=TI(K)B
-K=TIU|@
-U=,TIU|@
-T=0|1 	
-I=2 	
-B={NS}		
-N=@|AN
-A=0I;
-S=@|MS
-M=O|P|Q|R
-R=I=Z
+33
+E=aT
+T=@|aT
+a=02e|12N
+N=(K)B
+e=(K)o|m;
+o=B|;
+K=02U|@|1
+U=,02U|@
+B={b}	
+b=@|Ab|Mb
+A=02mc;
+c=,2mc|@
+m=@|=l
+l=2|6
+M=O|P|Q|2R
+R==Z|(H);
 Q=3L
 L=Z|;
 P=4(Z)B
@@ -18,11 +23,55 @@ J=5B|@
 Z=Dpu
 u=;|@
 p=gDp|@
-D=FV
+D=nFV
+n=+|-|@
 V=+F|-F|@
 F=Gf
 f=*G|/G|@
-G=6|(Z)|Iv
+G=6|(Z)|2v
 v=(H)|@
 H=@|Zh
 h=@|,Zh
+
+E是整个程序,d是一个函数
+o是处理函数声明和函数实现
+n是处理i=+5这样的式子 
+m是处理int a=5这样在内部声明中直接赋值的情况
+l处理用变量给变量在声明的时候赋值的情况
+c是处理int a,b;这样一条语句声明好几个变量
+b是指在语句块中不必所有声明都在最前端
+起始项E 类型T ID项2 内部声明N
+语句块B 语句串S 语句M
+表达式Z 内部变量声明A
+形参列表K OPQR分别是if表达式，while表达式，return表达式和赋值表达式
+加法表达式D 项F 因子G 实参列表H
+aINT0 cIDENTIFY2 dRETURN3 eWHILE4 qELSE5 gRELOP uNUM6 vFTYPE
+
+E-Program
+aT-声明串
+T-{声明}
+a-声明
+0-int
+2-ID
+N-函数声明
+e-声明类型
+m-变量声明
+(K)B-函数声明
+K-形参
+B-语句块
+1-void
+02U-形参列表
+02-参数
+b-内部声明和语句串
+M-语句
+O\P\Q\R-if while return 赋值语句
+Z-表达式
+3-return
+L-[表达式]
+4-while
+7-if
+5-else
+g-relop
+F-项
+G-因子
+Zh-实参列表

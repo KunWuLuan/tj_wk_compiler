@@ -9,8 +9,9 @@
 #include "main.h"
 struct c_linklist
 {
-    TYPE m_type;
-    VALUE m_value;
+    QString m_type;
+    QString m_value;
+    int row;
     c_linklist(QString,QString);
     c_linklist();
 };

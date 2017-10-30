@@ -6,12 +6,17 @@
 
 QStack<QChar>symbol;
 QStack<QStandardItem *>symbolpoint;
+//记录前一个项
+QString ex;
 int start=0;
 tj_parser::tj_parser(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::tj_parser)
 {
     ui->setupUi(this);
+    ui->forecast->setEnabled(false);
+    ui->oneStep->setEnabled(false);
+    ui->multiStep->setEnabled(false);
 }
 
 tj_parser::~tj_parser()
@@ -185,11 +190,13 @@ void tj_parser::on_firstfollow_clicked()
     }
     ui->firsttableView->setModel(firstmodel);
     ui->followtableView->setModel(followmodel);
+
+    ui->forecast->setEnabled(true);
 }
 
 bool tj_parser::isRELOP(QString k)
 {
-    if (k == "<" || k == "<=" || k == ">" || k == ">=" || k == "==" || k == "!=")
+    if (k == "<" || k == "<=" || k == ">" || k == ">=" || k == "==" || k == "!="||k=="&"||k=="&&"||k=="||"||k=="|")
         return 1;
     return 0;
 }
@@ -220,6 +227,10 @@ int tj_parser::findtype(QString k)
         if (m_kname[i] == k)
             return i;
     }
+    if(k.contains("CONST",Qt::CaseSensitive))
+        return 6;
+    if(k=="INT"||k=="DOUBLE"||k=="CHAR")
+        return 0;
     return -1;
 }
 
@@ -289,6 +300,9 @@ void tj_parser::on_forecast_clicked()
         forecastmodel->setItem(row,1,new QStandardItem((*ite2).second));
     }
     ui->forecasttableView->setModel(forecastmodel);
+
+    ui->oneStep->setEnabled(true);
+    ui->multiStep->setEnabled(true);
 }
 
 void tj_parser::on_multiStep_clicked()
@@ -301,13 +315,15 @@ void tj_parser::on_multiStep_clicked()
 
         QStandardItem *item=new QStandardItem(QString("E"));
         parentItem->appendRow(item);
+        c_linklist last(QString("#"),QString("#"));
+        Lexical->push_back(last);
         symbol.push('#');
         symbol.push('E');
         symbolpoint.push(new QStandardItem(QString("#")));
         symbolpoint.push(item);
         start=1;
     }
-    for (; analyseite != Lexical->end(); )
+    for (; analyseite != Lexical->end();)
     {
         stringstream sstr;
         QString posxy;//构建坐标
@@ -320,12 +336,14 @@ void tj_parser::on_multiStep_clicked()
             if (k[0] == top)
             {
                 //是一个终结符而且匹配成功
+                ex=analyseite->m_value;
                 analyseite++;
                 continue;
             }
             if ('g' == top && isRELOP(k))
             {
                 //是一个终结符而且匹配成功
+                ex=analyseite->m_value;
                 analyseite++;
                 continue;
             }
@@ -349,34 +367,45 @@ void tj_parser::on_multiStep_clicked()
             //是一个终结符而且匹配成功
             QStandardItem *itemchild = new QStandardItem((*analyseite).m_value);
             item->appendRow(itemchild);
+            ex=analyseite->m_value;
             analyseite++;
             continue;
         }
         QString pattern;
         if (Forecast->count(posxy) == 0)//出现了预测分析表之外的情况，报错
-            exit(-1);
-        pattern = (*Forecast)[posxy];//查到产生式
-        if (pattern == "@" || pattern == "@|") {
-            QStandardItem *itemchild = new QStandardItem(QString("@"));
-            item->appendRow(itemchild);
-            continue;
-        }
-        QVector<QStandardItem *>itemchild;
-        for (int i = pattern.length() - 1; i >= 0; i--)
         {
-            if(pattern[i]!='|'){
-                symbol.push(pattern[i]);//逆序将产生式压栈
-                QStandardItem *itemchild1 = new QStandardItem(QChar(pattern[i]));
-                itemchild.append(itemchild1);
-                symbolpoint.push(itemchild1);
+                QMessageBox::warning(this,"Error!",QString("%1在遇到%2的时候没有产生式\n%3后不可跟%4")
+                                     .arg(QChar(posxy[0]),QChar(posxy[1]),ex,analyseite->m_value));
+                symbol.push(top);//取出栈顶的符号
+                symbolpoint.push(item);
+                break;
+        }
+        else
+        {
+            pattern = (*Forecast)[posxy];//查到产生式
+            if (pattern == "@" || pattern == "@|") {
+                QStandardItem *itemchild = new QStandardItem(QString("@"));
+                item->appendRow(itemchild);
+                continue;
+            }
+            QVector<QStandardItem *>itemchild;
+            for (int i = pattern.length() - 1; i >= 0; i--)
+            {
+                if(pattern[i]!='|'){
+                    symbol.push(pattern[i]);//逆序将产生式压栈
+                    QStandardItem *itemchild1 = new QStandardItem(QChar(pattern[i]));
+                    itemchild.append(itemchild1);
+                    symbolpoint.push(itemchild1);
+                }
+            }
+            QVector<QStandardItem *>::iterator ite123;
+            for (ite123 = itemchild.end()-1; ite123 >= itemchild.begin(); ite123--)
+            {
+                 item->appendRow(*ite123);
             }
         }
-        QVector<QStandardItem *>::iterator ite123;
-        for (ite123 = itemchild.end()-1; ite123 >= itemchild.begin(); ite123--)
-        {
-             item->appendRow(*ite123);
-        }
     }
+    QMessageBox::warning(this,"Finished!",QString("成功分析完毕"));
     ui->treeView->expandAll();
 }
 
@@ -391,6 +420,8 @@ void tj_parser::on_oneStep_clicked()
 
         QStandardItem *item=new QStandardItem(QString("E"));
         parentItem->appendRow(item);
+        c_linklist last(QString("#"),QString("#"));
+        Lexical->push_back(last);
         symbol.push('#');
         symbol.push('E');
         symbolpoint.push(new QStandardItem(QString("#")));
@@ -399,13 +430,13 @@ void tj_parser::on_oneStep_clicked()
     }
     if(analyseite==Lexical->end())
     {
-        QMessageBox::warning(this,"Finished!","分析已经完成");
+        QMessageBox::warning(this,"Finished!","成功分析完毕");
     }
     else
     {
         stringstream sstr;
         QString posxy;//构建坐标
-        TYPE k = (*analyseite).m_type;
+        QString k = (*analyseite).m_type;
         int pos = findtype(k);//找到该类型的编号
         QChar top = symbol.pop();//取出栈顶的符号
         QStandardItem *item = symbolpoint.pop();
@@ -414,11 +445,13 @@ void tj_parser::on_oneStep_clicked()
             if (k[0] == top)
             {
                 //是一个终结符而且匹配成功
+                ex=analyseite->m_value;
                 analyseite++;
             }
             else if ('g' == top && isRELOP(k))
             {
                 //是一个终结符而且匹配成功
+                ex=analyseite->m_value;
                 analyseite++;
             }
         }
@@ -445,38 +478,49 @@ void tj_parser::on_oneStep_clicked()
                     //是一个终结符而且匹配成功
                     QStandardItem *itemchild = new QStandardItem((*analyseite).m_value);
                     item->appendRow(itemchild);
+                    ex=analyseite->m_value;
                     analyseite++;
             }
             else
             {
                     QString pattern;
                     if (Forecast->count(posxy) == 0)//出现了预测分析表之外的情况，报错
-                            exit(-1);
-                    pattern = (*Forecast)[posxy];//查到产生式
-                    if (pattern == "@" || pattern == "@|")
                     {
-                            QStandardItem *itemchild = new QStandardItem(QString("@"));
-                            item->appendRow(itemchild);
+
+                        QMessageBox::warning(this,"Error!",QString("%1在遇到%2的时候没有产生式\n%3后不可跟%4")
+                                             .arg(QChar(posxy[0]),QChar(posxy[1]),ex,analyseite->m_value));
+                        symbol.push(top);//取出栈顶的符号
+                        symbolpoint.push(item);
                     }
                     else
                     {
-                        QVector<QStandardItem *>itemchild;
-                        for (int i = pattern.length() - 1; i >= 0; i--)
+                        pattern = (*Forecast)[posxy];//查到产生式
+                        if (pattern == "@" || pattern == "@|")
                         {
-                            if(pattern[i]!='|'){
-                                symbol.push(pattern[i]);//逆序将产生式压栈
-                                QStandardItem *itemchild1 = new QStandardItem(QChar(pattern[i]));
-                                itemchild.append(itemchild1);
-                                symbolpoint.push(itemchild1);
-                            }
+                                QStandardItem *itemchild = new QStandardItem(QString("@"));
+                                item->appendRow(itemchild);
                         }
-                        QVector<QStandardItem *>::iterator ite123;
-                        for (ite123 = itemchild.end()-1; ite123 >= itemchild.begin(); ite123--)
+                        else
                         {
-                             item->appendRow(*ite123);
+                            QVector<QStandardItem *>itemchild;
+                            for (int i = pattern.length() - 1; i >= 0; i--)
+                            {
+                                if(pattern[i]!='|'){
+                                    symbol.push(pattern[i]);//逆序将产生式压栈
+                                    QStandardItem *itemchild1 = new QStandardItem(QChar(pattern[i]));
+                                    itemchild.append(itemchild1);
+                                    symbolpoint.push(itemchild1);
+                                }
+                            }
+                            QVector<QStandardItem *>::iterator ite123;
+                            for (ite123 = itemchild.end()-1; ite123 >= itemchild.begin(); ite123--)
+                            {
+                                 item->appendRow(*ite123);
+                            }
                         }
                     }
              }
         }
     }
+    ui->treeView->expandAll();
 }
