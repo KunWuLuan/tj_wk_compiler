@@ -187,31 +187,6 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
         else
             return -1;
     }
-    else if (ch == '/')
-    {
-        //字符型常量
-        if (!infile.atEnd()) {
-            infile >> ch;
-            if (ch == '/')
-                //单行注释，找\n
-            {
-                while (ch != '\n')
-                    if (!infile.atEnd()){
-                        infile >> ch;
-                    }
-                    else
-                        return 0;
-            }
-            else
-                //段注释，找匹配的"*/"
-            {
-
-            }
-            return 0;
-        }
-        else
-            return -1;
-    }
     else if (ch=='#')
     {
         node.m_type = "#";
@@ -295,13 +270,31 @@ int tj_lexical::c_scanner(QTextStream &infile, list<c_linklist> &m_Lexical, c_li
                 break;
             case '/':
                 ///|/=
-                if (!infile.atEnd()) {
+                if (!infile.atEnd()) 
+				{
                     infile >> ch;
                     if (ch == '=')
+						//是/=
                         node.m_value += ch;
-                    else
+                    else if (ch == '/')
+						//单行注释，找\n
+					{
+						while (ch != '\n')
+							if (!infile.atEnd()){
+								infile >> ch;
+							else	
+								break;
+						return 0;
+                    }
+                    else if(ch=='*')
+					//段注释，找匹配的"*/"
+					{}
+					else
+					//是一个除号
+					{
                         //将字符送回字符流
                         infile.seek(infile.pos()-1);
+					}
                 }
                 node.m_type = node.m_value;
                 break;
