@@ -1,15 +1,11 @@
-//#include<iostream>
-//#include"mytest.h"
-int  program(int a,int b,int c)
+//123456
+int a;
+int b;
+int program(int a,int b)
 {
 	int i;
 	int j;
 	i=0; 	
-	while(i<=100)
-	{
-		i=j*2;
-	}
-	k=a>(b+c);
 	if(a>(b+c))
 	{
 		j=a+(b*c+1);
@@ -18,8 +14,30 @@ int  program(int a,int b,int c)
 	{
 		j=a;
 	}
-	//double q = 3.50;
-	//h = -3.50;
-	//a = "abcdefgh";
+	while(i<=100)
+	{
+		i=j*2;
+	}
 	return i;
 }
+int demo(int a)
+{
+	a=a+2;
+	return a*2;
+}
+
+void main(void)
+{
+	int a;
+	int b;
+	int c;
+	a=3;
+	b=4;
+	c=2;
+	a=program(a,b,demo(c));
+	return;
+}
+
+/*
+123
+*/

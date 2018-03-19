@@ -1,8 +1,0 @@
-7
-E=Te
-e=+E|@
-T=Ft
-t=T|@
-F=Pf
-f=*f|@
-P=(E)|a|b|c
